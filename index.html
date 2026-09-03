@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tela de Produto - OLX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .olx-purple { background-color: #6e0ad6; }
+        .olx-purple-text { color: #6e0ad6; }
+        .olx-purple:hover { background-color: #5b05b3; }
+    </style>
+</head>
+<body class="bg-[#f2f4f5] font-sans text-gray-800">
+
+    <!-- Header OLX -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <a href="#" class="text-2xl font-black olx-purple-text tracking-tighter">OLX</a>
+                <div class="hidden md:flex items-center bg-[#f2f4f5] rounded-full px-4 py-2 w-96">
+                    <i class="fa-solid fa-search text-gray-400 mr-2"></i>
+                    <input type="text" placeholder="Buscar na OLX" class="bg-transparent outline-none w-full text-sm">
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="hidden sm:block text-sm font-semibold text-gray-700 hover:text-black">Meus Anúncios</button>
+                <button class="olx-purple text-white px-5 py-2.5 rounded-full font-bold text-sm shadow hover:shadow-md transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Anunciar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="max-w-7xl mx-auto px-4 py-3 text-xs text-gray-500 flex items-center space-x-2">
+        <a href="#" class="hover:underline">Home</a>
+        <span>/</span>
+        <a href="#" class="hover:underline">Eletrônicos e Celulares</a>
+        <span>/</span>
+        <span class="text-gray-800 font-medium">Anúncio do Produto</span>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Gallery & Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Image Gallery Card -->
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <div class="mb-4 overflow-hidden rounded-lg bg-black flex items-center justify-center h-96">
+                    <img id="mainImage" src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80" alt="Produto" class="object-cover h-full w-full">
+                </div>
+                <!-- Thumbnails -->
+                <div class="grid grid-cols-4 gap-3">
+                    <button onclick="changeImage(this)" data-src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80" class="border-2 border-purple-600 rounded-lg overflow-hidden h-20 focus:outline-none">
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                    </button>
+                    <button onclick="changeImage(this)" data-src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80" class="border-2 border-transparent hover:border-gray-300 rounded-lg overflow-hidden h-20 focus:outline-none">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                    </button>
+                    <button onclick="changeImage(this)" data-src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80" class="border-2 border-transparent hover:border-gray-300 rounded-lg overflow-hidden h-20 focus:outline-none">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                    </button>
+                    <button onclick="changeImage(this)" data-src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=800&q=80" class="border-2 border-transparent hover:border-gray-300 rounded-lg overflow-hidden h-20 focus:outline-none">
+                        <img src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Details Info -->
+            <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+                <h2 class="text-xl font-bold text-gray-900">Detalhes do produto</h2>
+                <div class="grid grid-cols-2 gap-4 text-sm border-b pb-4">
+                    <div>
+                        <span class="text-gray-500 block">Categoria</span>
+                        <span class="font-semibold text-gray-800">Eletrônicos e Celulares</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 block">Condição</span>
+                        <span class="font-semibold text-gray-800">Usado / Perfeito estado</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 mb-2">Descrição</h3>
+                    <p class="text-gray-700 leading-relaxed text-sm">
+                        Produto em excelente estado de conservação, funcionando perfeitamente sem nenhum defeito. Acompanha todos os acessórios originais, caixa e manuais. Motivo da venda: upgrade de equipamento. Entrega a combinar ou retirada em mãos.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Pricing & Seller -->
+        <div class="space-y-6">
+            <!-- Price & Title Card -->
+            <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+                <span class="text-xs text-gray-400 block">Publicado em 03/09 às 12:15</span>
+                <h1 class="text-2xl font-bold text-gray-900">Smartphone / Aparelho em Ótimo Estado Completo</h1>
+                <div class="text-3xl font-black text-gray-900">R$ 1.499</div>
+                <div class="text-xs text-gray-500 flex items-center justify-between pt-2 border-t">
+                    <span><i class="fa-solid fa-location-dot mr-1"></i> Campos dos Goytacazes, RJ</span>
+                    <span>CEP 28010-000</span>
+                </div>
+            </div>
+
+            <!-- Seller Card -->
+            <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-bold text-xl">
+                        VS
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">Vandinho</h3>
+                        <span class="text-xs text-gray-500 block">Na OLX desde Março de 2021</span>
+                        <span class="text-xs text-green-600 font-semibold"><i class="fa-solid fa-circle-check"></i> Conta Verificada</span>
+                    </div>
+                </div>
+                <div class="space-y-2 pt-2">
+                    <button class="w-full olx-purple text-white py-3 rounded-lg font-bold text-sm shadow hover:shadow-md transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-comment-dots"></i>
+                        <span>Chat OLX</span>
+                    </button>
+                    <button class="w-full border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-bold text-sm hover:border-gray-400 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Ligar / WhatsApp</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Safety Tips -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-xs space-y-2 text-yellow-800">
+                <div class="font-bold flex items-center"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Dicas de segurança</div>
+                <p>Prefira locais públicos e iluminados para a entrega. Só faça o pagamento após ver o produto pessoalmente.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t py-6 text-center text-xs text-gray-500">
+        <p>&copy; 2026 OLX Clone - Pronto para GitHub Pages</p>
+    </footer>
+
+    <script>
+        function changeImage(button) {
+            const src = button.getAttribute('data-src');
+            document.getElementById('mainImage').src = src;
+            
+            // Update active border
+            const buttons = button.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('border-purple-600'));
+            buttons.forEach(btn => btn.classList.add('border-transparent'));
+            button.classList.remove('border-transparent');
+            button.classList.add('border-purple-600');
+        }
+    </script>
+</body>
+</html>
