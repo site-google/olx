@@ -1,159 +1,739 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tela de Produto - OLX</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .olx-purple { background-color: #6e0ad6; }
-        .olx-purple-text { color: #6e0ad6; }
-        .olx-purple:hover { background-color: #5b05b3; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Android Multi-Instâncias</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    body {
+      font-family: 'Roboto', sans-serif;
+      user-select: none;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    .phone-screen {
+      aspect-ratio: 9 / 19.5;
+    }
+    .wallpaper-1 { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+    .wallpaper-2 { background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); }
+    .wallpaper-3 { background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); }
+    .wallpaper-4 { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
+    
+    .status-badge {
+      font-size: 10px;
+      line-height: 1.2;
+    }
+  </style>
 </head>
-<body class="bg-[#f2f4f5] font-sans text-gray-800">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
 
-    <!-- Header OLX -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-6">
-                <a href="#" class="text-2xl font-black olx-purple-text tracking-tighter">OLX</a>
-                <div class="hidden md:flex items-center bg-[#f2f4f5] rounded-full px-4 py-2 w-96">
-                    <i class="fa-solid fa-search text-gray-400 mr-2"></i>
-                    <input type="text" placeholder="Buscar na OLX" class="bg-transparent outline-none w-full text-sm">
-                </div>
-            </div>
-            <div class="flex items-center space-x-4">
-                <button class="hidden sm:block text-sm font-semibold text-gray-700 hover:text-black">Meus Anúncios</button>
-                <button class="olx-purple text-white px-5 py-2.5 rounded-full font-bold text-sm shadow hover:shadow-md transition">
-                    <i class="fa-solid fa-plus mr-1"></i> Anunciar
-                </button>
-            </div>
+  <!-- Header / Control Bar -->
+  <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/60 p-4 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="bg-emerald-500/20 p-2.5 rounded-xl text-emerald-400 border border-emerald-500/30">
+          <i class="fa-brands fa-android text-2xl"></i>
         </div>
-    </header>
+        <div>
+          <h1 class="text-xl font-bold tracking-wide text-slate-100 flex items-center gap-2">
+            Simulador Android Multi-Instâncias
+          </h1>
+          <p class="text-xs text-slate-400">Master → Replica Sincronizada em Tempo Real</p>
+        </div>
+      </div>
 
-    <!-- Breadcrumb -->
-    <div class="max-w-7xl mx-auto px-4 py-3 text-xs text-gray-500 flex items-center space-x-2">
-        <a href="#" class="hover:underline">Home</a>
-        <span>/</span>
-        <a href="#" class="hover:underline">Eletrônicos e Celulares</a>
-        <span>/</span>
-        <span class="text-gray-800 font-medium">Anúncio do Produto</span>
+      <!-- Controls -->
+      <div class="flex items-center flex-wrap gap-3">
+        <!-- Instance Selector Presets -->
+        <div class="bg-slate-900/80 p-1 rounded-lg border border-slate-700/80 flex items-center gap-1">
+          <span class="text-xs text-slate-400 px-2 font-medium">Qtd:</span>
+          <button onclick="setInstanceCount(1)" class="px-2.5 py-1 text-xs rounded font-semibold transition bg-slate-800 hover:bg-slate-700 text-slate-200">1x</button>
+          <button onclick="setInstanceCount(2)" class="px-2.5 py-1 text-xs rounded font-semibold transition bg-slate-800 hover:bg-slate-700 text-slate-200">2x</button>
+          <button onclick="setInstanceCount(3)" class="px-2.5 py-1 text-xs rounded font-semibold transition bg-slate-800 hover:bg-slate-700 text-slate-200">3x</button>
+          <button onclick="setInstanceCount(4)" class="px-2.5 py-1 text-xs rounded font-semibold transition bg-slate-800 hover:bg-slate-700 text-slate-200">4x</button>
+        </div>
+
+        <!-- Add/Remove buttons -->
+        <div class="flex items-center gap-1 bg-slate-900/80 p-1 rounded-lg border border-slate-700/80">
+          <button onclick="removeDevice()" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 hover:text-red-400 transition" title="Remover Celular">
+            <i class="fa-solid fa-minus text-sm"></i>
+          </button>
+          <span id="device-count-badge" class="px-2 text-xs font-bold text-emerald-400">1 Aparelhos</span>
+          <button onclick="addDevice()" class="p-1.5 hover:bg-slate-800 rounded text-slate-300 hover:text-emerald-400 transition" title="Adicionar Celular">
+            <i class="fa-solid fa-plus text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Regenerate Fake Data -->
+        <button onclick="regenerateAllFakeData()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-1.5 transition shadow-sm">
+          <i class="fa-solid fa-dice text-sm"></i>
+          <span>Regerar IPs / MECs</span>
+        </button>
+
+        <!-- Sync Toggle -->
+        <button id="sync-toggle-btn" onclick="toggleSync()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-1.5 transition shadow-sm">
+          <i id="sync-icon" class="fa-solid fa-arrows-rotate text-sm"></i>
+          <span id="sync-text">Sincronização Ativa</span>
+        </button>
+      </div>
     </div>
+  </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Left Column: Gallery & Details -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Image Gallery Card -->
-            <div class="bg-white rounded-lg shadow-sm p-4">
-                <div class="mb-4 overflow-hidden rounded-lg bg-black flex items-center justify-center h-96">
-                    <img id="mainImage" src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80" alt="Produto" class="object-cover h-full w-full">
-                </div>
-                <!-- Thumbnails -->
-                <div class="grid grid-cols-4 gap-3">
-                    <button onclick="changeImage(this)" data-src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80" class="border-2 border-purple-600 rounded-lg overflow-hidden h-20 focus:outline-none">
-                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
-                    </button>
-                    <button onclick="changeImage(this)" data-src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80" class="border-2 border-transparent hover:border-gray-300 rounded-lg overflow-hidden h-20 focus:outline-none">
-                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
-                    </button>
-                    <button onclick="changeImage(this)" data-src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80" class="border-2 border-transparent hover:border-gray-300 rounded-lg overflow-hidden h-20 focus:outline-none">
-                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
-                    </button>
-                    <button onclick="changeImage(this)" data-src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=800&q=80" class="border-2 border-transparent hover:border-gray-300 rounded-lg overflow-hidden h-20 focus:outline-none">
-                        <img src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
-                    </button>
-                </div>
-            </div>
+  <!-- Main Work Area -->
+  <main class="flex-1 p-6 max-w-[1600px] mx-auto w-full flex flex-col justify-center">
+    <div id="devices-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center items-start">
+      <!-- Phone instances will be injected here via JS -->
+    </div>
+  </main>
 
-            <!-- Product Details Info -->
-            <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
-                <h2 class="text-xl font-bold text-gray-900">Detalhes do produto</h2>
-                <div class="grid grid-cols-2 gap-4 text-sm border-b pb-4">
-                    <div>
-                        <span class="text-gray-500 block">Categoria</span>
-                        <span class="font-semibold text-gray-800">Eletrônicos e Celulares</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-500 block">Condição</span>
-                        <span class="font-semibold text-gray-800">Usado / Perfeito estado</span>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-900 mb-2">Descrição</h3>
-                    <p class="text-gray-700 leading-relaxed text-sm">
-                        Produto em excelente estado de conservação, funcionando perfeitamente sem nenhum defeito. Acompanha todos os acessórios originais, caixa e manuais. Motivo da venda: upgrade de equipamento. Entrega a combinar ou retirada em mãos.
-                    </p>
-                </div>
-            </div>
-        </div>
+  <script>
+    // System State
+    const state = {
+      instanceCount: 1,
+      isSyncActive: true,
+      currentApp: 'home', // 'home', 'messages', 'gallery', 'settings', 'chrome', 'phone'
+      wallpaper: 'wallpaper-1',
+      isDarkMode: true,
+      clockTime: '',
+      clockDate: '',
+      notificationOpen: false,
+      
+      // Fake Data Per Device
+      deviceData: [],
 
-        <!-- Right Column: Pricing & Seller -->
-        <div class="space-y-6">
-            <!-- Price & Title Card -->
-            <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
-                <span class="text-xs text-gray-400 block">Publicado em 03/09 às 12:15</span>
-                <h1 class="text-2xl font-bold text-gray-900">Smartphone / Aparelho em Ótimo Estado Completo</h1>
-                <div class="text-3xl font-black text-gray-900">R$ 1.499</div>
-                <div class="text-xs text-gray-500 flex items-center justify-between pt-2 border-t">
-                    <span><i class="fa-solid fa-location-dot mr-1"></i> Campos dos Goytacazes, RJ</span>
-                    <span>CEP 28010-000</span>
-                </div>
-            </div>
+      // App Internal States
+      chromeUrl: 'https://www.google.com',
+      searchQuery: '',
+      messages: [
+        { sender: 'contato', text: 'Olá! O teste de sincronização do Android está ativo?' },
+        { sender: 'me', text: 'Sim, tudo operando simultaneamente!' }
+      ],
+      chatInput: '',
+      dialpadNumber: ''
+    };
 
-            <!-- Seller Card -->
-            <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
-                <div class="flex items-center space-x-4">
-                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-bold text-xl">
-                        LS
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-gray-900">Leonardo da Silva</h3>
-                        <span class="text-xs text-gray-500 block">Na OLX desde Março de 2021</span>
-                        <span class="text-xs text-green-600 font-semibold"><i class="fa-solid fa-circle-check"></i> Conta Verificada</span>
-                    </div>
-                </div>
-                <div class="space-y-2 pt-2">
-                    <button class="w-full olx-purple text-white py-3 rounded-lg font-bold text-sm shadow hover:shadow-md transition flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-comment-dots"></i>
-                        <span>Chat OLX</span>
-                    </button>
-                    <button class="w-full border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-bold text-sm hover:border-gray-400 transition flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-phone"></i>
-                        <span>Ligar / WhatsApp</span>
-                    </button>
-                </div>
-            </div>
+    const publicIpRanges = ['177', '186', '189', '200', '201'];
+    const locations = [
+      { city: 'São Paulo, BR', lat: '-23.5505', lng: '-46.6333' },
+      { city: 'Rio de Janeiro, BR', lat: '-22.9068', lng: '-43.1729' },
+      { city: 'Brasília, BR', lat: '-15.7801', lng: '-47.9292' },
+      { city: 'Salvador, BR', lat: '-12.9777', lng: '-38.5016' },
+      { city: 'Belo Horizonte, BR', lat: '-19.9167', lng: '-43.9345' },
+      { city: 'Curitiba, BR', lat: '-25.4284', lng: '-49.2733' },
+      { city: 'Miami, US', lat: '25.7617', lng: '-80.1918' },
+      { city: 'Lisboa, PT', lat: '38.7223', lng: '-9.1393' }
+    ];
 
-            <!-- Safety Tips -->
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-xs space-y-2 text-yellow-800">
-                <div class="font-bold flex items-center"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Dicas de segurança</div>
-                <p>Prefira locais públicos e iluminados para a entrega. Só faça o pagamento após ver o produto pessoalmente.</p>
-            </div>
-        </div>
+    function generateFakePublicIP() {
+      const first = publicIpRanges[Math.floor(Math.random() * publicIpRanges.length)];
+      const second = Math.floor(Math.random() * 254) + 1;
+      const third = Math.floor(Math.random() * 254) + 1;
+      const fourth = Math.floor(Math.random() * 254) + 1;
+      return `${first}.${second}.${third}.${fourth}`;
+    }
 
-    </main>
+    function generateFakeMEC() {
+      let mec = '35';
+      for (let i = 0; i < 13; i++) {
+        mec += Math.floor(Math.random() * 10);
+      }
+      return mec;
+    }
 
-    <!-- Footer -->
-    <footer class="bg-white border-t py-6 text-center text-xs text-gray-500">
-        <p>&copy; 2026 OLX Clone - Pronto para GitHub Pages</p>
-    </footer>
+    function getRandomLocation() {
+      return locations[Math.floor(Math.random() * locations.length)];
+    }
 
-    <script>
-        function changeImage(button) {
-            const src = button.getAttribute('data-src');
-            document.getElementById('mainImage').src = src;
-            
-            // Update active border
-            const buttons = button.parentElement.querySelectorAll('button');
-            buttons.forEach(btn => btn.classList.remove('border-purple-600'));
-            buttons.forEach(btn => btn.classList.add('border-transparent'));
-            button.classList.remove('border-transparent');
-            button.classList.add('border-purple-600');
+    function generateDeviceIdentity(index) {
+      return {
+        ip: generateFakePublicIP(),
+        mec: generateFakeMEC(),
+        location: getRandomLocation()
+      };
+    }
+
+    function initData() {
+      for (let i = 0; i < 8; i++) {
+        state.deviceData.push(generateDeviceIdentity(i));
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      state.clockTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      state.clockDate = now.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+      
+      const elements = document.querySelectorAll('.status-clock');
+      elements.forEach(el => el.textContent = state.clockTime);
+      
+      const homeClocks = document.querySelectorAll('.home-clock');
+      homeClocks.forEach(el => el.textContent = state.clockTime);
+      
+      const homeDates = document.querySelectorAll('.home-date');
+      homeDates.forEach(el => el.textContent = state.clockDate);
+    }
+
+    function regenerateAllFakeData() {
+      state.deviceData = state.deviceData.map((_, i) => generateDeviceIdentity(i));
+      renderDevices();
+    }
+
+    function regenerateSingleDeviceData(index) {
+      state.deviceData[index] = generateDeviceIdentity(index);
+      renderDevices();
+    }
+
+    function updateDeviceLocation(index, locationIndex) {
+      const selectedLoc = locations[locationIndex];
+      if (index === 0 && state.isSyncActive) {
+        state.deviceData.forEach(dev => dev.location = selectedLoc);
+      } else {
+        state.deviceData[index].location = selectedLoc;
+      }
+      renderDevices();
+    }
+
+    function addDevice() {
+      if (state.instanceCount < 8) {
+        state.instanceCount++;
+        renderDevices();
+      }
+    }
+
+    function removeDevice() {
+      if (state.instanceCount > 1) {
+        state.instanceCount--;
+        renderDevices();
+      }
+    }
+
+    function setInstanceCount(count) {
+      state.instanceCount = count;
+      renderDevices();
+    }
+
+    function toggleSync() {
+      state.isSyncActive = !state.isSyncActive;
+      const btn = document.getElementById('sync-toggle-btn');
+      const text = document.getElementById('sync-text');
+      const icon = document.getElementById('sync-icon');
+
+      if (state.isSyncActive) {
+        btn.className = "bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-1.5 transition shadow-sm";
+        text.textContent = "Sincronização Ativa";
+        icon.className = "fa-solid fa-arrows-rotate text-sm";
+      } else {
+        btn.className = "bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-1.5 transition shadow-sm";
+        text.textContent = "Sincronização Pausada";
+        icon.className = "fa-solid fa-pause text-sm";
+      }
+    }
+
+    function triggerAction(actionName, payload = null) {
+      if (actionName === 'openApp') {
+        state.currentApp = payload;
+        state.notificationOpen = false;
+      } else if (actionName === 'goHome') {
+        state.currentApp = 'home';
+        state.notificationOpen = false;
+      } else if (actionName === 'toggleNotification') {
+        state.notificationOpen = !state.notificationOpen;
+      } else if (actionName === 'setWallpaper') {
+        state.wallpaper = payload;
+      } else if (actionName === 'toggleDarkMode') {
+        state.isDarkMode = !state.isDarkMode;
+      } else if (actionName === 'updateChatInput') {
+        state.chatInput = payload;
+      } else if (actionName === 'sendMessage') {
+        if (state.chatInput.trim() !== '') {
+          state.messages.push({ sender: 'me', text: state.chatInput });
+          state.chatInput = '';
         }
-    </script>
+      } else if (actionName === 'updateSearchQuery') {
+        state.searchQuery = payload;
+      } else if (actionName === 'updateChromeUrl') {
+        state.chromeUrl = payload;
+      } else if (actionName === 'dialAdd') {
+        state.dialpadNumber += payload;
+      } else if (actionName === 'dialDelete') {
+        state.dialpadNumber = state.dialpadNumber.slice(0, -1);
+      }
+
+      renderDevices();
+    }
+
+    function handleMasterAction(actionName, payload = null, deviceIndex = 0) {
+      if (deviceIndex === 0 && state.isSyncActive) {
+        triggerAction(actionName, payload);
+      } else {
+        triggerAction(actionName, payload);
+      }
+    }
+
+    function renderDevices() {
+      document.getElementById('device-count-badge').textContent = `${state.instanceCount} Aparelhos`;
+      const container = document.getElementById('devices-container');
+      container.innerHTML = '';
+
+      for (let i = 0; i < state.instanceCount; i++) {
+        const isMaster = (i === 0);
+        const deviceData = state.deviceData[i] || generateDeviceIdentity(i);
+        const phoneHtml = createPhoneMarkup(i, isMaster, deviceData);
+        container.insertAdjacentHTML('beforeend', phoneHtml);
+      }
+    }
+
+    function createPhoneMarkup(index, isMaster, deviceData) {
+      return `
+        <div class="flex flex-col items-center gap-2">
+          <!-- Top Info Bar -->
+          <div class="flex items-center justify-between w-[280px] px-2 py-1 bg-slate-800/80 border border-slate-700/80 rounded-lg text-xs font-mono text-slate-300 shadow-sm">
+            <span class="flex items-center gap-1.5 font-bold ${isMaster ? 'text-amber-400' : 'text-emerald-400'}">
+              <i class="fa-solid ${isMaster ? 'fa-crown' : 'fa-mobile-screen-button'}"></i>
+              ${isMaster ? 'MASTER (#1)' : `REPLICA (#${index + 1})`}
+            </span>
+            <div class="flex items-center gap-1.5">
+              <button onclick="regenerateSingleDeviceData(${index})" title="Regerar Dados Fake" class="text-slate-400 hover:text-indigo-400">
+                <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+              </button>
+              <span class="text-[10px] bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded text-slate-400">
+                ${state.isSyncActive ? 'SYNC ON' : 'SYNC OFF'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Fake Data Header Banner -->
+          <div class="w-[280px] bg-slate-800/90 border border-slate-700 rounded-lg p-2 text-[10px] space-y-1 font-mono text-slate-300">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">IP Público Simulado:</span>
+              <span class="text-indigo-300 font-bold">${deviceData.ip}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">MEC/IMEI:</span>
+              <span class="text-emerald-300">${deviceData.mec}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-400">GPS:</span>
+              <select onchange="updateDeviceLocation(${index}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-1 py-0.5 outline-none focus:border-indigo-500">
+                ${locations.map((loc, lIdx) => `
+                  <option value="${lIdx}" ${loc.city === deviceData.location.city ? 'selected' : ''}>${loc.city}</option>
+                `).join('')}
+              </select>
+            </div>
+          </div>
+
+          <!-- Phone Outer Shell -->
+          <div class="phone-screen w-[280px] bg-slate-950 border-[6px] border-slate-700/80 rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col ring-1 ring-slate-600/30">
+            
+            <!-- Camera Notch -->
+            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-4 bg-black rounded-full z-40 flex items-center justify-center gap-2">
+              <div class="w-2 h-2 rounded-full bg-slate-900 border border-slate-800"></div>
+              <div class="w-1.5 h-1.5 rounded-full bg-blue-900/60"></div>
+            </div>
+
+            <!-- Status Bar -->
+            <div onclick="handleMasterAction('toggleNotification', null, ${index})" class="h-7 pt-2 px-6 flex items-center justify-between text-[11px] text-white z-30 cursor-pointer hover:bg-white/5 transition">
+              <span class="status-clock font-medium tracking-tight">${state.clockTime}</span>
+              <div class="flex items-center space-x-1.5 text-[10px]">
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-battery-three-quarters text-xs"></i>
+              </div>
+            </div>
+
+            <!-- Screen Body (Wallpaper / Dark mode) -->
+            <div class="flex-1 relative flex flex-col overflow-hidden ${state.wallpaper} ${state.isDarkMode ? 'text-slate-100' : 'text-slate-900'}">
+              
+              <!-- Content App Display -->
+              <div class="flex-1 overflow-y-auto custom-scrollbar relative">
+                ${renderAppContent(index)}
+              </div>
+
+              <!-- Quick Settings / Notification Shade Overlay -->
+              ${state.notificationOpen ? renderNotificationPanel(index) : ''}
+
+            </div>
+
+            <!-- Bottom Navigation Bar -->
+            <div class="h-8 bg-black/40 backdrop-blur-md border-t border-white/10 flex items-center justify-around px-8 z-30">
+              <button onclick="handleMasterAction('goHome', null, ${index})" class="text-white/70 hover:text-white p-1">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+              </button>
+              <button onclick="handleMasterAction('goHome', null, ${index})" class="text-white/70 hover:text-white p-1">
+                <i class="fa-regular fa-circle text-xs"></i>
+              </button>
+              <button onclick="handleMasterAction('goHome', null, ${index})" class="text-white/70 hover:text-white p-1">
+                <i class="fa-solid fa-square text-[10px]"></i>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAppContent(deviceIndex) {
+      switch (state.currentApp) {
+        case 'home':
+          return renderHomeApp(deviceIndex);
+        case 'messages':
+          return renderMessagesApp(deviceIndex);
+        case 'gallery':
+          return renderGalleryApp(deviceIndex);
+        case 'settings':
+          return renderSettingsApp(deviceIndex);
+        case 'chrome':
+          return renderChromeApp(deviceIndex);
+        case 'phone':
+          return renderPhoneApp(deviceIndex);
+        default:
+          return renderHomeApp(deviceIndex);
+      }
+    }
+
+    // HOME SCREEN APP
+    function renderHomeApp(deviceIndex) {
+      return `
+        <div class="p-4 flex flex-col justify-between h-full text-white">
+          <!-- Widget Clock -->
+          <div class="mt-6 text-center drop-shadow">
+            <h1 class="home-clock text-4xl font-light tracking-tight">${state.clockTime}</h1>
+            <p class="home-date text-xs font-medium opacity-90 capitalize mt-1">${state.clockDate}</p>
+          </div>
+
+          <!-- Search Widget -->
+          <div class="my-auto">
+            <div class="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-3 py-1.5 flex items-center gap-2 shadow-sm">
+              <i class="fa-brands fa-google text-xs opacity-80"></i>
+              <input 
+                type="text" 
+                placeholder="Pesquisar..." 
+                value="${state.searchQuery}"
+                oninput="handleMasterAction('updateSearchQuery', this.value, ${deviceIndex})"
+                class="bg-transparent text-xs w-full outline-none placeholder-white/70 text-white"
+              >
+              <i class="fa-solid fa-microphone text-xs opacity-80"></i>
+            </div>
+          </div>
+
+          <!-- Grid App Icons -->
+          <div class="grid grid-cols-4 gap-3 mb-2 text-center">
+            <button onclick="handleMasterAction('openApp', 'messages', ${deviceIndex})" class="flex flex-col items-center gap-1 group">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-md group-active:scale-95 transition">
+                <i class="fa-solid fa-comment text-base"></i>
+              </div>
+              <span class="text-[10px] drop-shadow font-medium">Mensagens</span>
+            </button>
+
+            <button onclick="handleMasterAction('openApp', 'gallery', ${deviceIndex})" class="flex flex-col items-center gap-1 group">
+              <div class="w-10 h-10 rounded-2xl bg-purple-500 flex items-center justify-center text-white shadow-md group-active:scale-95 transition">
+                <i class="fa-solid fa-image text-base"></i>
+              </div>
+              <span class="text-[10px] drop-shadow font-medium">Galeria</span>
+            </button>
+
+            <button onclick="handleMasterAction('openApp', 'chrome', ${deviceIndex})" class="flex flex-col items-center gap-1 group">
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-yellow-400 via-red-500 to-green-500 flex items-center justify-center text-white shadow-md group-active:scale-95 transition">
+                <i class="fa-brands fa-chrome text-base"></i>
+              </div>
+              <span class="text-[10px] drop-shadow font-medium">Chrome</span>
+            </button>
+
+            <button onclick="handleMasterAction('openApp', 'phone', ${deviceIndex})" class="flex flex-col items-center gap-1 group">
+              <div class="w-10 h-10 rounded-2xl bg-blue-500 flex items-center justify-center text-white shadow-md group-active:scale-95 transition">
+                <i class="fa-solid fa-phone text-base"></i>
+              </div>
+              <span class="text-[10px] drop-shadow font-medium">Telefone</span>
+            </button>
+
+            <button onclick="handleMasterAction('openApp', 'settings', ${deviceIndex})" class="flex flex-col items-center gap-1 group">
+              <div class="w-10 h-10 rounded-2xl bg-slate-600 flex items-center justify-center text-white shadow-md group-active:scale-95 transition">
+                <i class="fa-solid fa-gear text-base"></i>
+              </div>
+              <span class="text-[10px] drop-shadow font-medium">Ajustes</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // MESSAGES APP
+    function renderMessagesApp(deviceIndex) {
+      return `
+        <div class="h-full flex flex-col bg-slate-900 text-slate-100">
+          <div class="p-3 bg-slate-800 border-b border-slate-700 flex items-center gap-2">
+            <button onclick="handleMasterAction('goHome', null, ${deviceIndex})" class="p-1 hover:bg-slate-700 rounded">
+              <i class="fa-solid fa-arrow-left text-xs"></i>
+            </button>
+            <div class="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-bold">
+              C
+            </div>
+            <div>
+              <h2 class="text-xs font-semibold">Contato Simulado</h2>
+              <p class="text-[9px] text-emerald-400">Online</p>
+            </div>
+          </div>
+
+          <div class="flex-1 p-3 overflow-y-auto space-y-2 text-xs">
+            ${state.messages.map(m => `
+              <div class="flex ${m.sender === 'me' ? 'justify-end' : 'justify-start'}">
+                <div class="${m.sender === 'me' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200'} rounded-xl px-3 py-1.5 max-w-[80%] text-[11px] shadow-sm">
+                  ${m.text}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="p-2 bg-slate-800 border-t border-slate-700 flex items-center gap-1">
+            <input 
+              type="text" 
+              placeholder="Digite uma mensagem..." 
+              value="${state.chatInput}"
+              oninput="handleMasterAction('updateChatInput', this.value, ${deviceIndex})"
+              onkeydown="if(event.key === 'Enter') handleMasterAction('sendMessage', null, ${deviceIndex})"
+              class="flex-1 bg-slate-900 border border-slate-700 text-xs rounded-full px-3 py-1.5 text-slate-100 outline-none focus:border-indigo-500"
+            >
+            <button onclick="handleMasterAction('sendMessage', null, ${deviceIndex})" class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-500 transition">
+              <i class="fa-solid fa-paper-plane text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // GALLERY APP
+    function renderGalleryApp(deviceIndex) {
+      return `
+        <div class="h-full flex flex-col bg-slate-950 text-slate-100">
+          <div class="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <button onclick="handleMasterAction('goHome', null, ${deviceIndex})" class="p-1 hover:bg-slate-800 rounded">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+              </button>
+              <h2 class="text-xs font-semibold">Galeria de Fotos</h2>
+            </div>
+            <i class="fa-solid fa-ellipsis-vertical text-xs text-slate-400"></i>
+          </div>
+
+          <div class="p-2 grid grid-cols-3 gap-1 overflow-y-auto">
+            <div class="aspect-square bg-gradient-to-br from-indigo-500 to-purple-600 rounded flex items-center justify-center text-white text-xs">
+              <i class="fa-solid fa-mountain"></i>
+            </div>
+            <div class="aspect-square bg-gradient-to-br from-pink-500 to-rose-500 rounded flex items-center justify-center text-white text-xs">
+              <i class="fa-solid fa-sun"></i>
+            </div>
+            <div class="aspect-square bg-gradient-to-br from-emerald-400 to-teal-600 rounded flex items-center justify-center text-white text-xs">
+              <i class="fa-solid fa-tree"></i>
+            </div>
+            <div class="aspect-square bg-gradient-to-br from-amber-400 to-orange-500 rounded flex items-center justify-center text-white text-xs">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="aspect-square bg-gradient-to-br from-blue-500 to-cyan-400 rounded flex items-center justify-center text-white text-xs">
+              <i class="fa-solid fa-water"></i>
+            </div>
+            <div class="aspect-square bg-gradient-to-br from-fuchsia-600 to-pink-500 rounded flex items-center justify-center text-white text-xs">
+              <i class="fa-solid fa-camera"></i>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // SETTINGS APP
+    function renderSettingsApp(deviceIndex) {
+      const dev = state.deviceData[deviceIndex] || generateDeviceIdentity(deviceIndex);
+      return `
+        <div class="h-full flex flex-col bg-slate-900 text-slate-100">
+          <div class="p-3 bg-slate-800 border-b border-slate-700 flex items-center gap-2">
+            <button onclick="handleMasterAction('goHome', null, ${deviceIndex})" class="p-1 hover:bg-slate-700 rounded">
+              <i class="fa-solid fa-arrow-left text-xs"></i>
+            </button>
+            <h2 class="text-xs font-semibold">Configurações do Sistema</h2>
+          </div>
+
+          <div class="p-3 space-y-4 overflow-y-auto text-xs">
+            <div>
+              <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2">Aparência & Tela</p>
+              <div class="space-y-2">
+                <p class="text-[11px] text-slate-300">Papel de Parede:</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <button onclick="handleMasterAction('setWallpaper', 'wallpaper-1', ${deviceIndex})" class="h-8 rounded border border-slate-600 wallpaper-1 text-[10px] font-medium text-white flex items-center justify-center">Azul</button>
+                  <button onclick="handleMasterAction('setWallpaper', 'wallpaper-2', ${deviceIndex})" class="h-8 rounded border border-slate-600 wallpaper-2 text-[10px] font-medium text-white flex items-center justify-center">Sunset</button>
+                  <button onclick="handleMasterAction('setWallpaper', 'wallpaper-3', ${deviceIndex})" class="h-8 rounded border border-slate-600 wallpaper-3 text-[10px] font-medium text-white flex items-center justify-center">Verde</button>
+                  <button onclick="handleMasterAction('setWallpaper', 'wallpaper-4', ${deviceIndex})" class="h-8 rounded border border-slate-600 wallpaper-4 text-[10px] font-medium text-white flex items-center justify-center">Dark</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800">
+              <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2">Identidade Hardware Simulado</p>
+              <div class="bg-slate-800 p-2.5 rounded border border-slate-700 space-y-1.5 text-[10px] font-mono">
+                <div class="flex justify-between">
+                  <span class="text-slate-400">IP Público Simulado:</span>
+                  <span class="text-indigo-300 font-bold">${dev.ip}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Nº MEC / IMEI:</span>
+                  <span class="text-emerald-300">${dev.mec}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">GPS City:</span>
+                  <span class="text-amber-300">${dev.location.city}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800">
+              <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2">Sobre o Dispositivo</p>
+              <div class="bg-slate-800 p-2 rounded text-[10px] space-y-1 text-slate-300">
+                <p><strong>Modelo:</strong> Android Emulator X1</p>
+                <p><strong>Versão:</strong> Android 14 (API 34)</p>
+                <p><strong>Compilação:</strong> UP1A.231005.007</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // CHROME APP
+    function renderChromeApp(deviceIndex) {
+      return `
+        <div class="h-full flex flex-col bg-slate-900 text-slate-100">
+          <div class="p-2 bg-slate-800 border-b border-slate-700 flex items-center gap-1.5">
+            <button onclick="handleMasterAction('goHome', null, ${deviceIndex})" class="p-1 hover:bg-slate-700 rounded text-slate-300">
+              <i class="fa-solid fa-house text-xs"></i>
+            </button>
+            <div class="flex-1 bg-slate-900 border border-slate-700 rounded-full px-2.5 py-1 flex items-center gap-1.5">
+              <i class="fa-solid fa-lock text-[9px] text-emerald-400"></i>
+              <input 
+                type="text" 
+                value="${state.chromeUrl}"
+                oninput="handleMasterAction('updateChromeUrl', this.value, ${deviceIndex})"
+                class="bg-transparent text-[11px] w-full outline-none text-slate-200"
+              >
+            </div>
+          </div>
+
+          <div class="flex-1 p-3 bg-slate-950 overflow-y-auto text-xs space-y-3">
+            <div class="text-center py-4">
+              <i class="fa-brands fa-google text-3xl text-indigo-400 mb-2"></i>
+              <h3 class="text-xs font-semibold">Navegador Simulado</h3>
+              <p class="text-[10px] text-slate-400 mt-1">Conectado via Proxy Virtual</p>
+            </div>
+
+            <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+              <h4 class="text-[11px] font-semibold text-indigo-300">Status da Conexão</h4>
+              <p class="text-[10px] text-slate-400">Sua navegação está associada ao IP Público Simulado: <span class="text-emerald-400 font-mono">${(state.deviceData[deviceIndex] || {}).ip}</span></p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // PHONE DIALER APP
+    function renderPhoneApp(deviceIndex) {
+      const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'];
+      return `
+        <div class="h-full flex flex-col bg-slate-900 text-slate-100">
+          <div class="p-3 border-b border-slate-800 flex items-center gap-2">
+            <button onclick="handleMasterAction('goHome', null, ${deviceIndex})" class="p-1 hover:bg-slate-800 rounded">
+              <i class="fa-solid fa-arrow-left text-xs"></i>
+            </button>
+            <h2 class="text-xs font-semibold">Telefone</h2>
+          </div>
+
+          <div class="p-4 text-center">
+            <span class="text-lg font-mono tracking-wider min-h-[28px] block text-indigo-400">${state.dialpadNumber || '&nbsp;'}</span>
+          </div>
+
+          <div class="flex-1 grid grid-cols-3 gap-2 px-6 pb-4">
+            ${keys.map(k => `
+              <button onclick="handleMasterAction('dialAdd', '${k}', ${deviceIndex})" class="aspect-square rounded-full bg-slate-800 hover:bg-slate-700 text-sm font-semibold flex items-center justify-center transition active:scale-95">
+                ${k}
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="pb-4 flex justify-center items-center gap-4">
+            <button onclick="handleMasterAction('dialDelete', null, ${deviceIndex})" class="p-2 text-slate-400 hover:text-red-400">
+              <i class="fa-solid fa-backspace text-sm"></i>
+            </button>
+            <button class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg active:scale-95">
+              <i class="fa-solid fa-phone text-sm"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // QUICK SETTINGS / NOTIFICATION PANEL
+    function renderNotificationPanel(deviceIndex) {
+      return `
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 p-4 flex flex-col justify-between text-white animate-fade-in">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <span class="text-xs font-medium text-slate-400">${state.clockDate}</span>
+              <button onclick="handleMasterAction('toggleNotification', null, ${deviceIndex})" class="text-xs text-slate-400 p-1">
+                <i class="fa-solid fa-xmark text-sm"></i>
+              </button>
+            </div>
+
+            <!-- Quick Toggles Grid -->
+            <div class="grid grid-cols-4 gap-2 mb-4">
+              <button class="flex flex-col items-center gap-1 p-2 rounded-xl bg-indigo-600 text-white">
+                <i class="fa-solid fa-wifi text-xs"></i>
+                <span class="text-[9px]">Wi-Fi</span>
+              </button>
+              <button class="flex flex-col items-center gap-1 p-2 rounded-xl bg-indigo-600 text-white">
+                <i class="fa-solid fa-bluetooth text-xs"></i>
+                <span class="text-[9px]">Bluetooth</span>
+              </button>
+              <button class="flex flex-col items-center gap-1 p-2 rounded-xl bg-slate-800 text-slate-400">
+                <i class="fa-solid fa-lightbulb text-xs"></i>
+                <span class="text-[9px]">Lanterna</span>
+              </button>
+              <button onclick="handleMasterAction('toggleDarkMode', null, ${deviceIndex})" class="flex flex-col items-center gap-1 p-2 rounded-xl ${state.isDarkMode ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}">
+                <i class="fa-solid fa-moon text-xs"></i>
+                <span class="text-[9px]">Escuro</span>
+              </button>
+            </div>
+
+            <!-- Fake Notification Cards -->
+            <div class="space-y-2">
+              <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800 text-[10px]">
+                <div class="flex items-center justify-between text-slate-400 mb-1">
+                  <span>Android System</span>
+                  <span>Agora</span>
+                </div>
+                <p class="font-medium text-slate-200">Sincronização Ativa com Master</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center pt-2">
+            <button onclick="handleMasterAction('toggleNotification', null, ${deviceIndex})" class="text-[10px] text-indigo-400">
+              Fechar Painel
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Initialize
+    initData();
+    renderDevices();
+  </script>
 </body>
 </html>
