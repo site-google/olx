@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador de Android Multi-Instâncias</title>
+  <title>Android Multi-Instâncias</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -27,10 +27,13 @@
     .wallpaper-2 { background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); }
     .wallpaper-3 { background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); }
     .wallpaper-4 { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
-    
-    .status-badge {
-      font-size: 10px;
-      line-height: 1.2;
+
+    @keyframes pulse-fast {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.95); }
+    }
+    .boot-pulse {
+      animation: pulse-fast 1.5s infinite ease-in-out;
     }
   </style>
 </head>
@@ -45,7 +48,7 @@
         </div>
         <div>
           <h1 class="text-xl font-bold tracking-wide text-slate-100 flex items-center gap-2">
-            Simulador Android Multi-Instâncias
+            Android Multi-Instâncias
           </h1>
           <p class="text-xs text-slate-400">Master → Replica Sincronizada em Tempo Real</p>
         </div>
@@ -73,10 +76,10 @@
           </button>
         </div>
 
-        <!-- Regenerate Fake Data -->
-        <button onclick="regenerateAllFakeData()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-1.5 transition shadow-sm">
+        <!-- Regenerate Data -->
+        <button onclick="regenerateAllDeviceData()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg font-medium flex items-center gap-1.5 transition shadow-sm">
           <i class="fa-solid fa-dice text-sm"></i>
-          <span>Regerar IPs / MECs</span>
+          <span>Gerar Novos IPs / MECs</span>
         </button>
 
         <!-- Sync Toggle -->
@@ -107,19 +110,28 @@
       clockDate: '',
       notificationOpen: false,
       
-      // Fake Data Per Device
+      // Device States and Hardware Identities
       deviceData: [],
 
       // App Internal States
       chromeUrl: 'https://www.google.com',
       searchQuery: '',
       messages: [
-        { sender: 'contato', text: 'Olá! O teste de sincronização do Android está ativo?' },
-        { sender: 'me', text: 'Sim, tudo operando simultaneamente!' }
+        { sender: 'contato', text: 'Olá! O sistema Android está sincronizado?' },
+        { sender: 'me', text: 'Sim, todas as instâncias conectadas!' }
       ],
       chatInput: '',
       dialpadNumber: ''
     };
+
+    const bootMessages = [
+      "Inicializando Kernel Android...",
+      "Configurando Hardware Virtual...",
+      "Alocando Endereço IP Público...",
+      "Registrando Identificador MEC / IMEI...",
+      "Sincronizando Módulos de GPS...",
+      "Carregando Interface Material You..."
+    ];
 
     const publicIpRanges = ['177', '186', '189', '200', '201'];
     const locations = [
@@ -133,7 +145,7 @@
       { city: 'Lisboa, PT', lat: '38.7223', lng: '-9.1393' }
     ];
 
-    function generateFakePublicIP() {
+    function generatePublicIP() {
       const first = publicIpRanges[Math.floor(Math.random() * publicIpRanges.length)];
       const second = Math.floor(Math.random() * 254) + 1;
       const third = Math.floor(Math.random() * 254) + 1;
@@ -141,7 +153,7 @@
       return `${first}.${second}.${third}.${fourth}`;
     }
 
-    function generateFakeMEC() {
+    function generateMEC() {
       let mec = '35';
       for (let i = 0; i < 13; i++) {
         mec += Math.floor(Math.random() * 10);
@@ -155,10 +167,44 @@
 
     function generateDeviceIdentity(index) {
       return {
-        ip: generateFakePublicIP(),
-        mec: generateFakeMEC(),
-        location: getRandomLocation()
+        ip: generatePublicIP(),
+        mec: generateMEC(),
+        location: getRandomLocation(),
+        isBooting: false,
+        bootProgress: 100,
+        bootStatusText: 'Pronto'
       };
+    }
+
+    function startBootSequence(index, delayOffset = 0) {
+      if (!state.deviceData[index]) {
+        state.deviceData[index] = generateDeviceIdentity(index);
+      }
+      
+      const dev = state.deviceData[index];
+      dev.isBooting = true;
+      dev.bootProgress = 0;
+      dev.bootStatusText = bootMessages[0];
+      
+      setTimeout(() => {
+        renderDevices();
+        let currentStep = 0;
+        
+        const interval = setInterval(() => {
+          currentStep++;
+          dev.bootProgress = Math.min(100, Math.round((currentStep / bootMessages.length) * 100));
+          
+          if (currentStep < bootMessages.length) {
+            dev.bootStatusText = bootMessages[currentStep];
+            renderDevices();
+          } else {
+            clearInterval(interval);
+            dev.isBooting = false;
+            dev.bootStatusText = 'Pronto';
+            renderDevices();
+          }
+        }, 600);
+      }, delayOffset);
     }
 
     function initData() {
@@ -174,17 +220,12 @@
       state.clockTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       state.clockDate = now.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
       
-      const elements = document.querySelectorAll('.status-clock');
-      elements.forEach(el => el.textContent = state.clockTime);
-      
-      const homeClocks = document.querySelectorAll('.home-clock');
-      homeClocks.forEach(el => el.textContent = state.clockTime);
-      
-      const homeDates = document.querySelectorAll('.home-date');
-      homeDates.forEach(el => el.textContent = state.clockDate);
+      document.querySelectorAll('.status-clock').forEach(el => el.textContent = state.clockTime);
+      document.querySelectorAll('.home-clock').forEach(el => el.textContent = state.clockTime);
+      document.querySelectorAll('.home-date').forEach(el => el.textContent = state.clockDate);
     }
 
-    function regenerateAllFakeData() {
+    function regenerateAllDeviceData() {
       state.deviceData = state.deviceData.map((_, i) => generateDeviceIdentity(i));
       renderDevices();
     }
@@ -206,7 +247,9 @@
 
     function addDevice() {
       if (state.instanceCount < 8) {
+        const newIdx = state.instanceCount;
         state.instanceCount++;
+        startBootSequence(newIdx, 0);
         renderDevices();
       }
     }
@@ -219,7 +262,14 @@
     }
 
     function setInstanceCount(count) {
+      const oldCount = state.instanceCount;
       state.instanceCount = count;
+      
+      if (count > oldCount) {
+        for (let i = oldCount; i < count; i++) {
+          startBootSequence(i, (i - oldCount) * 1200);
+        }
+      }
       renderDevices();
     }
 
@@ -295,6 +345,8 @@
     }
 
     function createPhoneMarkup(index, isMaster, deviceData) {
+      const isBooting = deviceData.isBooting;
+
       return `
         <div class="flex flex-col items-center gap-2">
           <!-- Top Info Bar -->
@@ -304,28 +356,28 @@
               ${isMaster ? 'MASTER (#1)' : `REPLICA (#${index + 1})`}
             </span>
             <div class="flex items-center gap-1.5">
-              <button onclick="regenerateSingleDeviceData(${index})" title="Regerar Dados Fake" class="text-slate-400 hover:text-indigo-400">
+              <button onclick="regenerateSingleDeviceData(${index})" title="Regerar Dados" class="text-slate-400 hover:text-indigo-400">
                 <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
               </button>
-              <span class="text-[10px] bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded text-slate-400">
-                ${state.isSyncActive ? 'SYNC ON' : 'SYNC OFF'}
+              <span class="text-[10px] bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded ${isBooting ? 'text-amber-400 animate-pulse' : 'text-slate-400'}">
+                ${isBooting ? 'INICIALIZANDO' : (state.isSyncActive ? 'SYNC ON' : 'SYNC OFF')}
               </span>
             </div>
           </div>
 
-          <!-- Fake Data Header Banner -->
+          <!-- Network Data Header Banner -->
           <div class="w-[280px] bg-slate-800/90 border border-slate-700 rounded-lg p-2 text-[10px] space-y-1 font-mono text-slate-300">
             <div class="flex justify-between items-center">
-              <span class="text-slate-400">IP Público Simulado:</span>
-              <span class="text-indigo-300 font-bold">${deviceData.ip}</span>
+              <span class="text-slate-400">IP Público:</span>
+              <span class="text-indigo-300 font-bold">${isBooting ? '...' : deviceData.ip}</span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-slate-400">MEC/IMEI:</span>
-              <span class="text-emerald-300">${deviceData.mec}</span>
+              <span class="text-slate-400">MEC / IMEI:</span>
+              <span class="text-emerald-300">${isBooting ? '...' : deviceData.mec}</span>
             </div>
             <div class="flex justify-between items-center">
               <span class="text-slate-400">GPS:</span>
-              <select onchange="updateDeviceLocation(${index}, this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-1 py-0.5 outline-none focus:border-indigo-500">
+              <select onchange="updateDeviceLocation(${index}, this.value)" ${isBooting ? 'disabled' : ''} class="bg-slate-900 border border-slate-700 text-slate-200 text-[10px] rounded px-1 py-0.5 outline-none focus:border-indigo-500">
                 ${locations.map((loc, lIdx) => `
                   <option value="${lIdx}" ${loc.city === deviceData.location.city ? 'selected' : ''}>${loc.city}</option>
                 `).join('')}
@@ -352,16 +404,18 @@
               </div>
             </div>
 
-            <!-- Screen Body (Wallpaper / Dark mode) -->
+            <!-- Screen Body (Wallpaper / Dark mode / Boot Screen) -->
             <div class="flex-1 relative flex flex-col overflow-hidden ${state.wallpaper} ${state.isDarkMode ? 'text-slate-100' : 'text-slate-900'}">
               
-              <!-- Content App Display -->
-              <div class="flex-1 overflow-y-auto custom-scrollbar relative">
-                ${renderAppContent(index)}
-              </div>
+              ${isBooting ? renderBootScreen(deviceData) : `
+                <!-- Content App Display -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar relative">
+                  ${renderAppContent(index)}
+                </div>
 
-              <!-- Quick Settings / Notification Shade Overlay -->
-              ${state.notificationOpen ? renderNotificationPanel(index) : ''}
+                <!-- Quick Settings / Notification Shade Overlay -->
+                ${state.notificationOpen ? renderNotificationPanel(index) : ''}
+              `}
 
             </div>
 
@@ -379,6 +433,25 @@
             </div>
 
           </div>
+        </div>
+      `;
+    }
+
+    function renderBootScreen(deviceData) {
+      return `
+        <div class="absolute inset-0 bg-black z-50 flex flex-col items-center justify-center p-6 text-center text-white">
+          <div class="mb-6 text-emerald-400 boot-pulse">
+            <i class="fa-brands fa-android text-5xl"></i>
+          </div>
+          
+          <h3 class="text-xs font-semibold tracking-wider text-slate-200 mb-2">android</h3>
+          
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden my-3 border border-slate-700">
+            <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${deviceData.bootProgress}%"></div>
+          </div>
+          
+          <p class="text-[10px] text-slate-400 font-mono mt-1">${deviceData.bootStatusText}</p>
         </div>
       `;
     }
@@ -480,7 +553,7 @@
               C
             </div>
             <div>
-              <h2 class="text-xs font-semibold">Contato Simulado</h2>
+              <h2 class="text-xs font-semibold">Contato</h2>
               <p class="text-[9px] text-emerald-400">Online</p>
             </div>
           </div>
@@ -577,10 +650,10 @@
             </div>
 
             <div class="pt-2 border-t border-slate-800">
-              <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2">Identidade Hardware Simulado</p>
+              <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2">Identidade Hardware</p>
               <div class="bg-slate-800 p-2.5 rounded border border-slate-700 space-y-1.5 text-[10px] font-mono">
                 <div class="flex justify-between">
-                  <span class="text-slate-400">IP Público Simulado:</span>
+                  <span class="text-slate-400">IP Público:</span>
                   <span class="text-indigo-300 font-bold">${dev.ip}</span>
                 </div>
                 <div class="flex justify-between">
@@ -597,7 +670,7 @@
             <div class="pt-2 border-t border-slate-800">
               <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2">Sobre o Dispositivo</p>
               <div class="bg-slate-800 p-2 rounded text-[10px] space-y-1 text-slate-300">
-                <p><strong>Modelo:</strong> Android Emulator X1</p>
+                <p><strong>Modelo:</strong> Android Device X1</p>
                 <p><strong>Versão:</strong> Android 14 (API 34)</p>
                 <p><strong>Compilação:</strong> UP1A.231005.007</p>
               </div>
@@ -629,13 +702,13 @@
           <div class="flex-1 p-3 bg-slate-950 overflow-y-auto text-xs space-y-3">
             <div class="text-center py-4">
               <i class="fa-brands fa-google text-3xl text-indigo-400 mb-2"></i>
-              <h3 class="text-xs font-semibold">Navegador Simulado</h3>
-              <p class="text-[10px] text-slate-400 mt-1">Conectado via Proxy Virtual</p>
+              <h3 class="text-xs font-semibold">Navegador Web</h3>
+              <p class="text-[10px] text-slate-400 mt-1">Conexão Segura Ativa</p>
             </div>
 
             <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
               <h4 class="text-[11px] font-semibold text-indigo-300">Status da Conexão</h4>
-              <p class="text-[10px] text-slate-400">Sua navegação está associada ao IP Público Simulado: <span class="text-emerald-400 font-mono">${(state.deviceData[deviceIndex] || {}).ip}</span></p>
+              <p class="text-[10px] text-slate-400">Navegação associada ao IP Público: <span class="text-emerald-400 font-mono">${(state.deviceData[deviceIndex] || {}).ip}</span></p>
             </div>
           </div>
         </div>
@@ -710,14 +783,14 @@
               </button>
             </div>
 
-            <!-- Fake Notification Cards -->
+            <!-- Notification Cards -->
             <div class="space-y-2">
               <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800 text-[10px]">
                 <div class="flex items-center justify-between text-slate-400 mb-1">
-                  <span>Android System</span>
+                  <span>Sistema Android</span>
                   <span>Agora</span>
                 </div>
-                <p class="font-medium text-slate-200">Sincronização Ativa com Master</p>
+                <p class="font-medium text-slate-200">Sincronização Ativa com Dispositivo Master</p>
               </div>
             </div>
           </div>
